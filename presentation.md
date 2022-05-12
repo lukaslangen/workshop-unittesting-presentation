@@ -126,7 +126,7 @@ section {
 # Module 1 - Automated testing
 
 - Different use cases require different kind of tests
-- Three main kinds of testing: Unit, Integration, End-2-End
+- Three main kinds of testing: Unit, Integration / Functional, End-2-End
 
 ![Testing Pyramid](testing-pyramid.png)
 
@@ -167,6 +167,12 @@ _Techniques for White-Box-Testing will be discussed in the second module_
 - When the SUT returns a value
 - When a test doesn't need to make sure specific methods on a dependency are called
 - When the resulting _state_ of a SUT should be tested
+
+
+```
+As a general rule of thumb, try to test as much as possible by implementing
+Black-Box-Testing. Good black-box tests are much more stable, than white-box tests.
+```
 
 ---
 
@@ -477,7 +483,7 @@ Mocks are more complex than any of the preceding doubles.
 
 Examples are only in phpunit:
 
-_Asserting that `Repository::save()` is called once and `Repository::read()` is called exactly twice_
+_Asserting that `Repository::save()` is called once and `Repository::read()` is called exactly three times
 ```php
 // Create mock
 $mock = $this->createMock(Repository::class);
@@ -558,7 +564,25 @@ $uut->doStuffThatNeedsRepository();
 
 __Where to put tests?__
 
-They should usually live in a `test(s)/` directory in the root of a project and mirror a `src/` or `module/` directory
+They should usually live in a `test(s)/` directory in the root of a project that 
+in turn has directories for different kind of tests. 
+Inside these subdirectories the directory structure should mirror 
+a `src/` or `module/` directory
+
+An example structure:
+```
+|- src/
+|   |- Repository
+|       |- SomeRepository.php
+|- tests/
+|   |- Unit
+|       |- Repository
+|           |- SomeRepositoryTest.php
+```
+
+---
+
+# Module 2: Organizing Tests
 
 __How to structure Tests?__
 
@@ -572,21 +596,22 @@ _Reccommendation: Always create a test class for each public method, even if it 
 
 __How to organize test doubles?__
 
-Depending on the situation one might want to share some test doubles. One way of achieving this is to create a static factory class, that handles this interaction. Sticking with the previous example one such factory could look like this:
+Depending on the situation one might want to share some test doubles. One way of 
+achieving that is to have a `Doubles` directory in the root `tests` directory like so:
 
-```php
-class RepositoryDoubleFactory
-{
-    public static function createDummy(): DummyRepository {...}
-    public static function createFake(): FakeRepository {...}
-    public static function createSpy(): SpyRepository {...}
-
-    /** @return Repository|Stub */
-    public static function createStub(\PhpUnit\Framework\TestCase $testCase) {...}
-
-    /** @return Repository|MockObject */
-    public static function createMock(\PhpUnit\Framework\TestCase $testCase) {...}
-}
+```
+|- src/
+|   |- Repository
+|       |- SomeRepository.php
+|- tests/
+|   |- Unit
+|       |- Repository
+|           |- SomeRepositoryTest.php
+|   |- Doubles
+|       |- Repository
+|           |- DummyRepository.php
+|           |- FakeRepository.php
+|           |- SpyRepository.php
 ```
 
 ---
@@ -613,7 +638,11 @@ private function createUnitUnderTest(?Repository $repository = null): UnitUnderT
 
 __How many assertions?__
 
-Ideally there should be only one assertion per test case. Often times that is not feasible, so it is fine if there are multiple assertions per test case.
+Generally there should be one assertion per test case, however sometimes this will
+lead to a lot of code duplication if you stick to this rule like it's gospel.
+
+In cases, where it's not feasible to follow this rule, it is fine to have multiple
+assertions in one test case.
 
 ---
 
